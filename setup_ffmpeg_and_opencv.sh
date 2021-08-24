@@ -5,16 +5,17 @@
 ############################
 
 # Set number of jobs, probably best to choose number of CPUS
-export NUM_JOBS=4
+# export NUM_JOBS=4
 
 # Alternatively try something like below:
-# export NUM_JOBS=$(cat /proc/cpuinfo | grep "cpu cores" | uniq | awk '{print $NF}')
+export NUM_JOBS=$(cat /proc/cpuinfo | grep "cpu cores" | uniq | awk '{print $NF}')
 
 # install destination for binaries
 export LOCAL_BIN_DIR="$HOME/.local/bin"
+mkdir -p "$LOCAL_BIN_DIR"
 # install destination for libraries
 export LOCAL_LIB_DIR="$HOME/.local/lib"
-
+mkdir -p "$LOCAL_LIB_DIR"
 # tell linker where new libs will be added
 export LD_LIBRARY_PATH="$LOCAL_LIB_DIR:$LD_LIBRARY_PATH"
 
@@ -44,9 +45,11 @@ sudo yum install autoconf \
 
 # download destination for ffmpeg + dependencies
 export FFMPEG_SRC_DIR="$HOME/ffmpeg_sources"
+mkdir -p "$FFMPEG_SRC_DIR"
 # scratch folder for temp files generated during build process
 export FFMPEG_BUILD_DIR="$HOME/ffmpeg_sources"
-echo "INSTALLING ASSEMBLERS" 
+mkdir -p "$FFMPEG_BUILD_DIR"
+
 
 # install nasm (assembler)
 cd "$FFMPEG_SRC_DIR"
