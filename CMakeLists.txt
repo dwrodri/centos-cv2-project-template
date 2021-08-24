@@ -8,7 +8,6 @@ set(CMAKE_CXX_STANDARD 17)
 
 add_executable(executable src/main.cc)
 target_link_libraries(executable ${OpenCV_LIBS})
-message(${OpenCV_LIBS})
 # put the binary in the build folder
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build)
 

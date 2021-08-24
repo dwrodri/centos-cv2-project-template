@@ -5,10 +5,10 @@
 ############################
 
 # Set number of jobs, probably best to choose number of CPUS
-# export NUM_JOBS=4
-
-# Alternatively try something like below:
 export NUM_JOBS=$(cat /proc/cpuinfo | grep "cpu cores" | uniq | awk '{print $NF}')
+
+export LOCAL_PREFIX="$HOME/.local"
+mkdir -p "$LOCAL_PREFIX"
 
 # install destination for binaries
 export LOCAL_BIN_DIR="$HOME/.local/bin"
@@ -57,7 +57,7 @@ curl -O -L https://www.nasm.us/pub/nasm/releasebuilds/2.15.05/nasm-2.15.05.tar.b
 tar xjvf nasm-2.15.05.tar.bz2
 cd nasm-2.15.05
 ./autogen.sh
-./configure --prefix="$FFMPEG_BUILD_DIR" --bindir="$LOCAL_BIN_DIR"
+./configure --prefix="$LOCAL_PREFIX" --bindir="$LOCAL_BIN_DIR"
 make -j"$NUM_JOBS"
 make install
 
@@ -66,7 +66,7 @@ cd "$FFMPEG_SRC_DIR"
 curl -O -L https://www.tortall.net/projects/yasm/releases/yasm-1.3.0.tar.gz
 tar xzvf yasm-1.3.0.tar.gz
 cd yasm-1.3.0
-./configure --prefix="$FFMPEG_BUILD_DIR" --bindir="$LOCAL_BIN_DIR"
+./configure --prefix="$LOCAL_PREFIX" --bindir="$LOCAL_BIN_DIR"
 make -j"$NUM_JOBS" 
 make install
 
@@ -74,7 +74,7 @@ make install
 cd "$FFMPEG_SRC_DIR"
 git clone --branch stable --depth 1 https://code.videolan.org/videolan/x264.git
 cd x264
-PKG_CONFIG_PATH="$FFMPEG_BUILD_DIR/lib/pkgconfig" ./configure --prefix="$FFMPEG_BUILD_DIR" --bindir="$LOCAL_BIN_DIR" --enable-static --enable-shared
+PKG_CONFIG_PATH="$LOCAL_PREFIX/lib/pkgconfig" ./configure --prefix="$LOCAL_PREFIX" --enable-static --enable-shared
 make -j"$NUM_JOBS"
 make install
 cd ..
@@ -83,7 +83,7 @@ cd ..
 cd "$FFMPEG_SRC_DIR"
 git clone --branch stable --depth 2 https://bitbucket.org/multicoreware/x265_git
 cd "x265_git/build/linux"
-cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$FFMPEG_BUILD_DIR" -DENABLE_SHARED:bool=on ../../source
+cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$LOCAL_PREFIX" -DENABLE_SHARED:bool=on ../../source
 CFLAGS=-fPIC CXXFLAGS=-fPIC make -j"$NUM_JOBS"
 make install
 
@@ -91,7 +91,7 @@ make install
 cd "$FFMPEG_SRC_DIR"
 git clone --depth 1 https://chromium.googlesource.com/webm/libvpx.git
 cd libvpx
-./configure --prefix="$FFMPEG_BUILD_DIR" --disable-examples --disable-unit-tests --enable-vp9-highbitdepth --as=yasm --enable-shared
+./configure --prefix="$LOCAL_PREFIX" --disable-examples --disable-unit-tests --enable-vp9-highbitdepth --as=yasm --enable-shared
 CFLAGS=-fPIC CXXFLAGS=-fPIC make -j"$NUM_JOBS" 
 make install
 
@@ -100,7 +100,7 @@ cd "$FFMPEG_SRC_DIR"
 git clone --depth 1 https://github.com/mstorsjo/fdk-aac
 cd fdk-aac
 autoreconf -fiv
-./configure --prefix="$FFMPEG_BUILD_DIR" --enable-shared
+./configure --prefix="$LOCAL_PREFIX" --enable-shared
 CFLAGS=-fPIC CXXFLAGS=-fPIC make -j"$NUM_JOBS" 
 make install
 
@@ -109,7 +109,7 @@ cd "$FFMPEG_SRC_DIR"
 curl -O -L https://downloads.sourceforge.net/project/lame/lame/3.100/lame-3.100.tar.gz
 tar xzvf lame-3.100.tar.gz
 cd lame-3.100
-./configure --prefix="$FFMPEG_BUILD_DIR" --bindir="$LOCAL_BIN_DIR" --enable-shared --enable-nasm
+./configure --prefix="$LOCAL_PREFIX" --enable-shared --enable-nasm
 CFLAGS=-fPIC CXXFLAGS=-fPIC make -j"$NUM_JOBS" 
 make install
 cd ..
@@ -119,7 +119,7 @@ cd "$FFMPEG_SRC_DIR"
 curl -O -L https://archive.mozilla.org/pub/opus/opus-1.3.1.tar.gz
 tar xzvf opus-1.3.1.tar.gz
 cd opus-1.3.1
-./configure --prefix="$FFMPEG_BUILD_DIR" --enable-shared
+./configure --prefix="$LOCAL_PREFIX" --enable-shared
 CFLAGS=-fPIC CXXFLAGS=-fPIC make -j"$NUM_JOBS" 
 make install
 cd ..
@@ -129,11 +129,11 @@ cd "$FFMPEG_SRC_DIR"
 curl -O -L https://ffmpeg.org/releases/ffmpeg-4.2.4.tar.bz2
 tar xjvf ffmpeg-4.2.4.tar.bz2
 cd "$FFMPEG_SRC_DIR/ffmpeg-4.2.4"
-PATH="$LOCAL_BIN_DIR:$PATH" PKG_CONFIG_PATH="$FFMPEG_BUILD_DIR/lib/pkgconfig" ./configure \
-  --prefix="$LOCAL_LIB_DIR" \
+PATH="$LOCAL_BIN_DIR:$PATH" PKG_CONFIG_PATH="$LOCAL_PREFIX/lib/pkgconfig" ./configure \
+  --prefix="$LOCAL_PREFIX"\
   --pkg-config-flags="--static" \
-  --extra-cflags="-I$FFMPEG_BUILD_DIR/include" \
-  --extra-ldflags="-L$FFMPEG_BUILD_DIR/lib" \
+  --extra-cflags="-I$LOCAL_PREFIX/include" \
+  --extra-ldflags="-L$LOCAL_PREFIX/lib" \
   --extra-libs=-lpthread \
   --extra-libs=-lm \
   --bindir="$LOCAL_BIN_DIR" \
@@ -155,8 +155,8 @@ make install
 ##############################
 
 export OPENCV_INSTALL_PREFIX="$HOME/.local"
-export OPENCV_REPO_DIR = "$HOME/opencv"
-export OPENCV_CONTRIB_REPO_DIR = "$HOME/opencv_contrib"
+export OPENCV_REPO_DIR="$HOME/opencv"
+export OPENCV_CONTRIB_REPO_DIR="$HOME/opencv_contrib"
 export OPENCV_VERSION="4.5.3"
 
 # Clone the main repo + extra modules
@@ -172,9 +172,9 @@ cd $OPENCV_CONTRIB_REPO_DIR
 git checkout $OPENCV_VERSION
 
 # make build dir and setup makefiles
-mkdir "$OPENCV_REPO_DIR/build" && cd "$OPENCV_REPO_DIR/build"
+mkdir -p "$OPENCV_REPO_DIR/build" && cd "$OPENCV_REPO_DIR/build"
 cmake .. \
-	-DCMAKE_BUILLD_TYPE=Release \
+	-DCMAKE_BUILD_TYPE=Release \
 	-DWITH_FFMPEG=ON \
 	-DOPENCV_EXTRA_MODULES_PATH="$OPENCV_CONTRIB_REPO_DIR/modules" \
 	-DCMAKE_INSTALL_PREFIX="$OPENCV_INSTALL_PREFIX"
