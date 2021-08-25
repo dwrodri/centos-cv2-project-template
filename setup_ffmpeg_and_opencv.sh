@@ -14,6 +14,7 @@ mkdir -p "$LOCAL_PREFIX"
 # install destination for binaries
 export LOCAL_BIN_DIR="$HOME/.local/bin"
 mkdir -p "$LOCAL_BIN_DIR"
+export PATH="$PATH:$LOCAL_BIN_DIR"
 # install destination for libraries
 export LOCAL_LIB_DIR="$HOME/.local/lib"
 mkdir -p "$LOCAL_LIB_DIR"
