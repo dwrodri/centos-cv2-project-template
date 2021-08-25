@@ -5,7 +5,8 @@
 ############################
 
 # Set number of jobs, probably best to choose number of CPUS
-export NUM_JOBS=$(cat /proc/cpuinfo | grep "cpu cores" | uniq | awk '{print $NF}')
+export NUM_JOBS=4
+NUM_JOBS=$(grep "cpu cores" /proc/cpuinfo | uniq | awk '{print $NF}')
 
 export LOCAL_PREFIX="$HOME/.local"
 mkdir -p "$LOCAL_PREFIX"
@@ -52,83 +53,83 @@ mkdir -p "$FFMPEG_BUILD_DIR"
 
 
 # install nasm (assembler)
-cd "$FFMPEG_SRC_DIR"
+cd "$FFMPEG_SRC_DIR" || exit
 curl -O -L https://www.nasm.us/pub/nasm/releasebuilds/2.15.05/nasm-2.15.05.tar.bz2
 tar xjvf nasm-2.15.05.tar.bz2
-cd nasm-2.15.05
+cd nasm-2.15.05 || exit
 ./autogen.sh
 ./configure --prefix="$LOCAL_PREFIX" --bindir="$LOCAL_BIN_DIR"
 make -j"$NUM_JOBS"
 make install
 
 # install yasm (another assembler)
-cd "$FFMPEG_SRC_DIR"
+cd "$FFMPEG_SRC_DIR" || exit
 curl -O -L https://www.tortall.net/projects/yasm/releases/yasm-1.3.0.tar.gz
 tar xzvf yasm-1.3.0.tar.gz
-cd yasm-1.3.0
+cd yasm-1.3.0 || exit
 ./configure --prefix="$LOCAL_PREFIX" --bindir="$LOCAL_BIN_DIR"
 make -j"$NUM_JOBS" 
 make install
 
 # install libx264
-cd "$FFMPEG_SRC_DIR"
+cd "$FFMPEG_SRC_DIR" || exit
 git clone --branch stable --depth 1 https://code.videolan.org/videolan/x264.git
-cd x264
+cd x264 || exit
 PKG_CONFIG_PATH="$LOCAL_PREFIX/lib/pkgconfig" ./configure --prefix="$LOCAL_PREFIX" --enable-static --enable-shared
 make -j"$NUM_JOBS"
 make install
 cd ..
 
 # install libx265
-cd "$FFMPEG_SRC_DIR"
+cd "$FFMPEG_SRC_DIR" || exit
 git clone --branch stable --depth 2 https://bitbucket.org/multicoreware/x265_git
-cd "x265_git/build/linux"
+cd "x265_git/build/linux" || exit
 cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$LOCAL_PREFIX" -DENABLE_SHARED:bool=on ../../source
 CFLAGS=-fPIC CXXFLAGS=-fPIC make -j"$NUM_JOBS"
 make install
 
 # install libvpx
-cd "$FFMPEG_SRC_DIR"
+cd "$FFMPEG_SRC_DIR" || exit
 git clone --depth 1 https://chromium.googlesource.com/webm/libvpx.git
-cd libvpx
+cd libvpx || exit
 ./configure --prefix="$LOCAL_PREFIX" --disable-examples --disable-unit-tests --enable-vp9-highbitdepth --as=yasm --enable-shared
 CFLAGS=-fPIC CXXFLAGS=-fPIC make -j"$NUM_JOBS" 
 make install
 
 # install libfdk_aac (AAC support)
-cd "$FFMPEG_SRC_DIR"
+cd "$FFMPEG_SRC_DIR" || exit
 git clone --depth 1 https://github.com/mstorsjo/fdk-aac
-cd fdk-aac
+cd fdk-aac || exit
 autoreconf -fiv
 ./configure --prefix="$LOCAL_PREFIX" --enable-shared
 CFLAGS=-fPIC CXXFLAGS=-fPIC make -j"$NUM_JOBS" 
 make install
 
 # install libmp3lame (MP3 support)
-cd "$FFMPEG_SRC_DIR"
+cd "$FFMPEG_SRC_DIR" || exit
 curl -O -L https://downloads.sourceforge.net/project/lame/lame/3.100/lame-3.100.tar.gz
 tar xzvf lame-3.100.tar.gz
-cd lame-3.100
+cd lame-3.100 || exit
 ./configure --prefix="$LOCAL_PREFIX" --enable-shared --enable-nasm
 CFLAGS=-fPIC CXXFLAGS=-fPIC make -j"$NUM_JOBS" 
 make install
 cd ..
 
 # install libopus (OGG/Opus)
-cd "$FFMPEG_SRC_DIR"
+cd "$FFMPEG_SRC_DIR" || exit
 curl -O -L https://archive.mozilla.org/pub/opus/opus-1.3.1.tar.gz
 tar xzvf opus-1.3.1.tar.gz
-cd opus-1.3.1
+cd opus-1.3.1 || exit
 ./configure --prefix="$LOCAL_PREFIX" --enable-shared
 CFLAGS=-fPIC CXXFLAGS=-fPIC make -j"$NUM_JOBS" 
 make install
 cd ..
 
 # install the rest of the FFmpeg codebase
-cd "$FFMPEG_SRC_DIR"
+cd "$FFMPEG_SRC_DIR" || exit
 curl -O -L https://ffmpeg.org/releases/ffmpeg-4.2.4.tar.bz2
 tar xjvf ffmpeg-4.2.4.tar.bz2
-cd "$FFMPEG_SRC_DIR/ffmpeg-4.2.4"
+cd "$FFMPEG_SRC_DIR/ffmpeg-4.2.4" || exit
 PATH="$LOCAL_BIN_DIR:$PATH" PKG_CONFIG_PATH="$LOCAL_PREFIX/lib/pkgconfig" ./configure \
   --prefix="$LOCAL_PREFIX"\
   --pkg-config-flags="--static" \
@@ -165,16 +166,16 @@ git clone --recursive "https://github.com/opencv/opencv_contrib" "$OPENCV_CONTRI
 
 
 # checkout release commit for both main repo and modules
-cd $OPENCV_REPO_DIR
+cd "$OPENCV_REPO_DIR" || exit
 git checkout $OPENCV_VERSION
 
-cd $OPENCV_CONTRIB_REPO_DIR
+cd "$OPENCV_CONTRIB_REPO_DIR" || exit
 git checkout $OPENCV_VERSION
 
 # make build dir and setup makefiles
-mkdir -p "$OPENCV_REPO_DIR/build" && cd "$OPENCV_REPO_DIR/build"
+mkdir -p "$OPENCV_REPO_DIR/build" && cd "$OPENCV_REPO_DIR/build" || exit
 cmake .. \
-	-DCMAKE_BUILD_TYPE=Release \
+	-DCMAKE_BUILLD_TYPE=Release \
 	-DWITH_FFMPEG=ON \
 	-DOPENCV_EXTRA_MODULES_PATH="$OPENCV_CONTRIB_REPO_DIR/modules" \
 	-DCMAKE_INSTALL_PREFIX="$OPENCV_INSTALL_PREFIX"
