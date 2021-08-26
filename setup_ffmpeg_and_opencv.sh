@@ -12,11 +12,10 @@ export LOCAL_PREFIX="$HOME/.local"
 mkdir -p "$LOCAL_PREFIX"
 
 # install destination for binaries
-export LOCAL_BIN_DIR="$HOME/.local/bin"
+export LOCAL_BIN_DIR="$LOCAL_PREFIX/bin"
 mkdir -p "$LOCAL_BIN_DIR"
-export PATH="$PATH:$LOCAL_BIN_DIR"
 # install destination for libraries
-export LOCAL_LIB_DIR="$HOME/.local/lib"
+export LOCAL_LIB_DIR="$LOCAL_PREFIX/lib"
 mkdir -p "$LOCAL_LIB_DIR"
 # tell linker where new libs will be added
 export LD_LIBRARY_PATH="$LOCAL_LIB_DIR:$LD_LIBRARY_PATH"
@@ -24,6 +23,7 @@ export LD_LIBRARY_PATH="$LOCAL_LIB_DIR:$LD_LIBRARY_PATH"
 # add bin dir to path
 export PATH="$LOCAL_BIN_DIR:$PATH"
 
+export PKG_CONFIG_PATH="$LOCAL_PREFIX/lib/pkgconfig"
 # Install tooling from yum
 sudo yum install autoconf \
 	         automake \
@@ -131,7 +131,7 @@ cd "$FFMPEG_SRC_DIR" || exit
 curl -O -L https://ffmpeg.org/releases/ffmpeg-4.2.4.tar.bz2
 tar xjvf ffmpeg-4.2.4.tar.bz2
 cd "$FFMPEG_SRC_DIR/ffmpeg-4.2.4" || exit
-PATH="$LOCAL_BIN_DIR:$PATH" PKG_CONFIG_PATH="$LOCAL_PREFIX/lib/pkgconfig" ./configure \
+./configure \
   --prefix="$LOCAL_PREFIX"\
   --pkg-config-flags="--static" \
   --extra-cflags="-I$LOCAL_PREFIX/include" \
@@ -152,6 +152,10 @@ PATH="$LOCAL_BIN_DIR:$PATH" PKG_CONFIG_PATH="$LOCAL_PREFIX/lib/pkgconfig" ./conf
 make -j"$NUM_JOBS"
 make install
 
+echo "TEST"
+ffmpeg -version
+echo "ENV"
+printenv
 ##############################
 ### PART 2: Install OpenCV ###
 ##############################
@@ -183,3 +187,10 @@ cmake .. \
 
 # compile and install
 make -j"$NUM_JOBS" install
+
+# show relevant env info
+echo "Here are some changes you probably want to add to your shell env"
+
+echo "export LD_LIBRARY_PATH=\"$LOCAL_LIB_DIR:\$LD_LIBRARY_PATH\""
+echo "export PATH=\"$LOCAL_BIN_DIR:\$PATH\""
+echo "export PKG_CONFIG_PATH=\"$LOCAL_PREFIX/lib/pkgconfig\""
