@@ -8,14 +8,14 @@
 export NUM_JOBS=4
 NUM_JOBS=$(grep "cpu cores" /proc/cpuinfo | uniq | awk '{print $NF}')
 
-export LOCAL_PREFIX="$HOME/.local"
-mkdir -p "$LOCAL_PREFIX"
+export INSTALL_LOCATION="$HOME/.local"
+mkdir -p "$INSTALL_LOCATION"
 
 # install destination for binaries
-export LOCAL_BIN_DIR="$LOCAL_PREFIX/bin"
+export LOCAL_BIN_DIR="$INSTALL_LOCATION/bin"
 mkdir -p "$LOCAL_BIN_DIR"
 # install destination for libraries
-export LOCAL_LIB_DIR="$LOCAL_PREFIX/lib"
+export LOCAL_LIB_DIR="$INSTALL_LOCATION/lib"
 mkdir -p "$LOCAL_LIB_DIR"
 # tell linker where new libs will be added
 export LD_LIBRARY_PATH="$LOCAL_LIB_DIR:$LD_LIBRARY_PATH"
@@ -23,7 +23,7 @@ export LD_LIBRARY_PATH="$LOCAL_LIB_DIR:$LD_LIBRARY_PATH"
 # add bin dir to path
 export PATH="$LOCAL_BIN_DIR:$PATH"
 
-export PKG_CONFIG_PATH="$LOCAL_PREFIX/lib/pkgconfig"
+export PKG_CONFIG_PATH="$INSTALL_LOCATION/lib/pkgconfig"
 # Install tooling from yum
 sudo yum install autoconf \
 	         automake \
@@ -59,7 +59,7 @@ curl -O -L https://www.nasm.us/pub/nasm/releasebuilds/2.15.05/nasm-2.15.05.tar.b
 tar xjvf nasm-2.15.05.tar.bz2
 cd nasm-2.15.05 || exit
 ./autogen.sh
-./configure --prefix="$LOCAL_PREFIX" --bindir="$LOCAL_BIN_DIR"
+./configure --prefix="$INSTALL_LOCATION" --bindir="$LOCAL_BIN_DIR"
 make -j"$NUM_JOBS"
 make install
 
@@ -68,7 +68,7 @@ cd "$FFMPEG_SRC_DIR" || exit
 curl -O -L https://www.tortall.net/projects/yasm/releases/yasm-1.3.0.tar.gz
 tar xzvf yasm-1.3.0.tar.gz
 cd yasm-1.3.0 || exit
-./configure --prefix="$LOCAL_PREFIX" --bindir="$LOCAL_BIN_DIR"
+./configure --prefix="$INSTALL_LOCATION" --bindir="$LOCAL_BIN_DIR"
 make -j"$NUM_JOBS" 
 make install
 
@@ -76,7 +76,7 @@ make install
 cd "$FFMPEG_SRC_DIR" || exit
 git clone --branch stable --depth 1 https://code.videolan.org/videolan/x264.git
 cd x264 || exit
-PKG_CONFIG_PATH="$LOCAL_PREFIX/lib/pkgconfig" ./configure --prefix="$LOCAL_PREFIX" --enable-static --enable-shared
+PKG_CONFIG_PATH="$INSTALL_LOCATION/lib/pkgconfig" ./configure --prefix="$INSTALL_LOCATION" --enable-static --enable-shared
 make -j"$NUM_JOBS"
 make install
 cd ..
@@ -85,7 +85,7 @@ cd ..
 cd "$FFMPEG_SRC_DIR" || exit
 git clone --branch stable --depth 2 https://bitbucket.org/multicoreware/x265_git
 cd "x265_git/build/linux" || exit
-cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$LOCAL_PREFIX" -DENABLE_SHARED:bool=on ../../source
+cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$INSTALL_LOCATION" -DENABLE_SHARED:bool=on ../../source
 CFLAGS=-fPIC CXXFLAGS=-fPIC make -j"$NUM_JOBS"
 make install
 
@@ -93,7 +93,7 @@ make install
 cd "$FFMPEG_SRC_DIR" || exit
 git clone --depth 1 https://chromium.googlesource.com/webm/libvpx.git
 cd libvpx || exit
-./configure --prefix="$LOCAL_PREFIX" --disable-examples --disable-unit-tests --enable-vp9-highbitdepth --as=yasm --enable-shared
+./configure --prefix="$INSTALL_LOCATION" --disable-examples --disable-unit-tests --enable-vp9-highbitdepth --as=yasm --enable-shared
 CFLAGS=-fPIC CXXFLAGS=-fPIC make -j"$NUM_JOBS" 
 make install
 
@@ -102,7 +102,7 @@ cd "$FFMPEG_SRC_DIR" || exit
 git clone --depth 1 https://github.com/mstorsjo/fdk-aac
 cd fdk-aac || exit
 autoreconf -fiv
-./configure --prefix="$LOCAL_PREFIX" --enable-shared
+./configure --prefix="$INSTALL_LOCATION" --enable-shared
 CFLAGS=-fPIC CXXFLAGS=-fPIC make -j"$NUM_JOBS" 
 make install
 
@@ -111,7 +111,7 @@ cd "$FFMPEG_SRC_DIR" || exit
 curl -O -L https://downloads.sourceforge.net/project/lame/lame/3.100/lame-3.100.tar.gz
 tar xzvf lame-3.100.tar.gz
 cd lame-3.100 || exit
-./configure --prefix="$LOCAL_PREFIX" --enable-shared --enable-nasm
+./configure --prefix="$INSTALL_LOCATION" --enable-shared --enable-nasm
 CFLAGS=-fPIC CXXFLAGS=-fPIC make -j"$NUM_JOBS" 
 make install
 cd ..
@@ -121,7 +121,7 @@ cd "$FFMPEG_SRC_DIR" || exit
 curl -O -L https://archive.mozilla.org/pub/opus/opus-1.3.1.tar.gz
 tar xzvf opus-1.3.1.tar.gz
 cd opus-1.3.1 || exit
-./configure --prefix="$LOCAL_PREFIX" --enable-shared
+./configure --prefix="$INSTALL_LOCATION" --enable-shared
 CFLAGS=-fPIC CXXFLAGS=-fPIC make -j"$NUM_JOBS" 
 make install
 cd ..
@@ -132,10 +132,10 @@ curl -O -L https://ffmpeg.org/releases/ffmpeg-4.2.4.tar.bz2
 tar xjvf ffmpeg-4.2.4.tar.bz2
 cd "$FFMPEG_SRC_DIR/ffmpeg-4.2.4" || exit
 ./configure \
-  --prefix="$LOCAL_PREFIX"\
+  --prefix="$INSTALL_LOCATION"\
   --pkg-config-flags="--static" \
-  --extra-cflags="-I$LOCAL_PREFIX/include" \
-  --extra-ldflags="-L$LOCAL_PREFIX/lib" \
+  --extra-cflags="-I$INSTALL_LOCATION/include" \
+  --extra-ldflags="-L$INSTALL_LOCATION/lib" \
   --extra-libs=-lpthread \
   --extra-libs=-lm \
   --bindir="$LOCAL_BIN_DIR" \
@@ -193,4 +193,4 @@ echo "Here are some changes you probably want to add to your shell env"
 
 echo "export LD_LIBRARY_PATH=\"$LOCAL_LIB_DIR:\$LD_LIBRARY_PATH\""
 echo "export PATH=\"$LOCAL_BIN_DIR:\$PATH\""
-echo "export PKG_CONFIG_PATH=\"$LOCAL_PREFIX/lib/pkgconfig\""
+echo "export PKG_CONFIG_PATH=\"$INSTALL_LOCATION/lib/pkgconfig\""
